@@ -41,11 +41,11 @@ bool isTStruct(ast::Expression *expr) {
 struct PropInfo {
     core::LocOffsets loc;
     bool isImmutable = false;
-    core::NameRef name = core::NameRef::noName();
+    core::NameRef name;
     core::LocOffsets nameLoc;
     unique_ptr<ast::Expression> type;
     unique_ptr<ast::Expression> default_;
-    core::NameRef computedByMethodName = core::NameRef::noName();
+    core::NameRef computedByMethodName;
     core::LocOffsets computedByMethodNameLoc;
     unique_ptr<ast::Expression> foreign;
 };
