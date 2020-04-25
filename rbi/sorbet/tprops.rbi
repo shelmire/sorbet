@@ -35,7 +35,7 @@ module T::Props::CustomType
   def deserialize(_mongo_scalar); end
   def instance?(_value); end
   def self.scalar_type?(val); end
-  def self.valid_serialization?(val, type = nil); end
+  def self.valid_serialization?(val); end
   def serialize(_instance); end
   def valid?(value); end
   include Kernel

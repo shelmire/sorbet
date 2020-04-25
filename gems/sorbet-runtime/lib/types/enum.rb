@@ -98,7 +98,7 @@ class T::Enum
   end
 
   # Note: Failed CriticalMethodsNoRuntimeTypingTest
-  sig {override.params(instance: T.attached_class).returns(SerializedVal).checked(:never)}
+  sig {override.params(instance: T::Enum).returns(SerializedVal).checked(:never)}
   def self.serialize(instance)
     if self == T::Enum
       raise "Cannot call T::Enum.serialize directly. You must call on a specific child class."

@@ -41,7 +41,7 @@ module T::Props
     # @return An instance of one of T::Configuration.scalar_types
     sig do
       abstract
-      .params(instance: T.attached_class)
+      .params(instance: T.untyped)
       .returns(T.untyped)
       .checked(:never)
     end
@@ -55,7 +55,7 @@ module T::Props
     sig do
       abstract
       .params(scalar: T.untyped)
-      .returns(T.attached_class)
+      .returns(T.untyped)
       .checked(:never)
     end
     def deserialize(scalar); end
@@ -72,7 +72,7 @@ module T::Props
       # We don't need to check for val's included modules in
       # T::Configuration.scalar_types, because T::Configuration.scalar_types
       # are all classes.
-      klass = val.class
+      klass = T.let(val.class, T.nilable(Class))
       until klass.nil?
         return true if T::Configuration.scalar_types.include?(klass.to_s)
         klass = klass.superclass
