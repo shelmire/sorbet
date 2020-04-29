@@ -16,7 +16,8 @@ const std::vector<ErrorStatus> &ErrorReporter::getFileErrorStatuses() const {
 vector<core::FileRef> ErrorReporter::filesUpdatedSince(u4 epoch) {
     vector<core::FileRef> filesUpdatedSince;
     for (size_t i = 1; i < fileErrorStatuses.size(); ++i) {
-        if (fileErrorStatuses[i].sentEpoch >= epoch) {
+        ErrorStatus fileErrorStatus = fileErrorStatuses[i];
+        if (fileErrorStatus.lastReportedEpoch >= epoch && fileErrorStatus.hasErrors) {
             filesUpdatedSince.push_back(core::FileRef(i));
         }
     }
@@ -30,9 +31,14 @@ void ErrorReporter::pushDiagnostics(u4 epoch, core::FileRef file, const vector<u
         return;
     }
 
-    ErrorStatus fileErrorStatus = getFileErrorStatus(file);
-    if (fileErrorStatus.sentEpoch > epoch) {
+    ErrorStatus &fileErrorStatus = getFileErrorStatus(file);
+    if (fileErrorStatus.lastReportedEpoch > epoch) {
         return;
+    }
+
+    // Update epoch of any file that is typechecked
+    if (fileErrorStatus.lastReportedEpoch < epoch) {
+        fileErrorStatus.lastReportedEpoch = epoch;
     }
 
     // If errors is empty and the file had no errors previously, break
@@ -40,7 +46,7 @@ void ErrorReporter::pushDiagnostics(u4 epoch, core::FileRef file, const vector<u
         return;
     }
 
-    fileErrorStatuses[file.id()] = ErrorStatus{epoch, !errors.empty()};
+    fileErrorStatus.hasErrors = !errors.empty();
 
     const string uri = config->fileRef2Uri(gs, file);
     config->logger->debug("[ErrorReporter] Sending diagnostics for file {}, epoch {}", uri, epoch);
@@ -84,7 +90,7 @@ void ErrorReporter::pushDiagnostics(u4 epoch, core::FileRef file, const vector<u
         make_unique<NotificationMessage>("2.0", LSPMethod::TextDocumentPublishDiagnostics, move(params))));
 };
 
-ErrorStatus ErrorReporter::getFileErrorStatus(core::FileRef file) {
+ErrorStatus &ErrorReporter::getFileErrorStatus(core::FileRef file) {
     if (file.id() >= fileErrorStatuses.size()) {
         setMaxFileId(file.id());
     }
